@@ -22,6 +22,7 @@
 				oldFn.apply(this);
 				var me=this,treeInstance=me._tree,stringArray=me._stringArray;nodetext = stringArray[stringArray.length-2];
 				if(treeInstance.checkbox===true){
+					console.log(me.text);
 					stringArray[stringArray.length-2]=("<input class='tangram-tree-checkbox' type='checkbox' "+(me.checked?" checked='checked' ":"")+" id='"+me.id+"-checkbox' style='margin:0px 2px;vertical-align:middle;padding:0px;width:12px;height:12px;' /><label class='tangram-tree-checkbox-label'  for='"+me.id+"-checkbox'>"+nodetext+"</label>");
 				}
 			}
@@ -57,12 +58,13 @@
 </div>
 <div id="" class="">
 	<input type="button" id="" name="" value="dispose" onclick="c.dispose();" />
+	<input type="checkbox" id="cb1" name="" />
 </div>
 <script type="text/javascript">
 		var c = new baidu.ui.Tree({data: {id: "root", type:"", text: "根节点",icon:"image/group.png", children: [{id: "rsid0", type:"trunk", text: "节点-0(节点id：rsid0)",icon:"image/service.gif", children: [{id: "rsid00", type:"leaf", text: "子节点-0-0(节点id: rsid00)", children: [] },{id: "rsid01", type:"leaf", text: "子节点-0-1(节点id: rsid01)", children: [] },{id: "rsid02", type:"leaf", text: "子节点-0-2(节点id: rsid02)", children: [] }] },{id: "rsid1", type:"trunk", text: "节点-1(节点id：rsid1)", children: [{id: "rsid10", type:"leaf", text: "子节点-1-0(节点id: rsid10)", children: [] },{id: "rsid11", type:"leaf", text: "子节点-1-1(节点id: rsid11)",icon:"image/su.gif", children: [] },{id: "rsid12", type:"leaf",icon:"image/machine.gif", text: "子节点-1-2(节点id: rsid12)", checked:true,/*节点数据新增属性checked是否选中*/ children: [] }] },{id: "rsid2", type:"leaf", text: "节点-2(节点id：rsid2)", icon:"image/machine.png",children: [] },{id: "rsid3", type:"leaf", text: "节点-3(节点id：rsid3)", children: [] },{id: "rsid4", type:"leaf", text: "节点-4(节点id：rsid4)", children: [] }] },
 		checkbox:true,//新增属性是否有checkbox
 		onload: function(evt){evt.target.getRootNode().expandAll();}});
-c.render("treeId");
+		c.render("treeId");	
 	</script>
 </body>
 </html>
