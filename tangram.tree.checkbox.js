@@ -6,7 +6,7 @@
 *	@function getCheckNodes(withIndeterminate) : get checked  nodes  ,withIndeterminate : true/false ,with Indeterminate?
 *	@author yanghengfeng@baidu.com
 */
-function(){
+(function(){
 	//重写_createTextStringArray实现checkbox显示
 	//_createTextStringArray的源码
 	/*_createTextStringArray: function() {
@@ -128,5 +128,6 @@ function(){
 			return checkedNodes;
 		}
 	});
-	
-})();
+
+})()
+
