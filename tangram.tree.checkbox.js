@@ -1,4 +1,12 @@
-(function(){
+/*
+*	tangram.tree.checkbox.js
+*	add support for tangram tree
+*	@option.checkbox :true/false 
+*	@option.checkMode :1-single check,2-multiple check,3-casacade check 
+*	@function getCheckNodes(withIndeterminate) : get checked  nodes  ,withIndeterminate : true/false ,with Indeterminate?
+*	@author yanghengfeng@baidu.com
+*/
+function(){
 	//重写_createTextStringArray实现checkbox显示
 	//_createTextStringArray的源码
 	/*_createTextStringArray: function() {
