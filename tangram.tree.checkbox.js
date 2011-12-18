@@ -2,7 +2,7 @@
 *	tangram.tree.checkbox.js
 *	add support for tangram tree
 *	@option.checkbox :true/false 
-*	@option.checkMode :1-single check,2-multiple check,3-casacade check 
+*	@option.checkMode :1-single check,2-multiple check(default),3-casacade check 
 *	@function getCheckNodes(withIndeterminate) : get checked  nodes  ,withIndeterminate : true/false ,with Indeterminate?
 *	@author yanghengfeng@baidu.com
 */
