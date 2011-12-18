@@ -20,16 +20,68 @@
 			var oldFn = baidu.ui.Tree.TreeNode.prototype._createTextStringArray;
 			baidu.ui.Tree.TreeNode.prototype._createTextStringArray= function(){
 				oldFn.apply(this);
-				var me=this,treeInstance=me._tree,stringArray=me._stringArray;nodetext = stringArray[stringArray.length-2];
+				var me=this,treeInstance=me.getTree(),stringArray=me._stringArray;nodetext = stringArray[stringArray.length-2];
+				if(treeInstance.checkMode==3 && me.type=="trunk" && me.checked ){
+					me.checked=false;
+				}
+				if(treeInstance.checkMode==1 && me.checked){
+					if(!treeInstance._singlechecked) {//singlechecked:单选的
+						treeInstance._singlechecked=me.id;
+					}else{
+						me.checked=false;
+					}
+				}
 				if(treeInstance.checkbox===true){
-					console.log(me.text);
-					stringArray[stringArray.length-2]=("<input class='tangram-tree-checkbox' type='checkbox' "+(me.checked?" checked='checked' ":"")+" id='"+me.id+"-checkbox' style='margin:0px 2px;vertical-align:middle;padding:0px;width:12px;height:12px;' /><label class='tangram-tree-checkbox-label'  for='"+me.id+"-checkbox'>"+nodetext+"</label>");
+					stringArray[stringArray.length-2]=("<input class='tangram-tree-checkbox' autocomplete='off' type='checkbox' "+(me.checked?" checked='checked' ":"")+" id='"+me.id+"-checkbox' style='margin:0px 2px;vertical-align:middle;padding:0px;width:12px;height:12px;' /><label class='tangram-tree-checkbox-label'  for='"+me.id+"-checkbox'>"+nodetext+"</label>");
 				}
 			}
 			
 			baidu.ui.Tree.register(function(treeInstance){
 				treeInstance.applyCheckBox = function(sourcecb){
-					console.log("applyCheckBox:"+sourcecb.id);
+					var me =this,nodeid=sourcecb.id.replace(/-checkbox$/i,""),node= me.getTreeNodeById(nodeid);
+					//单选去除现有选项
+					if(me.checkMode==1){
+						var $checked = baidu.dom.query(".tangram-tree-checkbox:checked",me.getMain());
+						for(var i=0,l=$checked.length;i<l;i++){
+							var $curchecked = $checked[i],checkedId= $curchecked.id.replace(/-checkbox/i,""),checkedNode = me.getTreeNodeById(checkedId);
+							if(checkedId!=nodeid){
+								checkedNode.checked=false;
+								checkedNode.indeterminate=false;
+								$curchecked.checked=false;
+							}
+						}
+						//更新_singlechecked
+						if(me._singlechecked)delete me._singlechecked;
+						if(sourcecb.checked) me._singlechecked = nodeid;
+					}
+					//保存状态
+					node.indeterminate = sourcecb.indeterminate;
+					node.checked = sourcecb.checked;
+				
+					//级联选择
+					if(me.checkMode==3){
+						var curNode = node ;
+						//parent->parent
+						while(curNode.parentNode){
+							var parentNode= curNode.parentNode,siblings =parentNode.getChildNodes(),checkedLen=0,$parent=baidu.dom.g(parentNode.id+"-checkbox");
+							for(var i=0,l=siblings.length;i<l;i++){
+								if(siblings[i].checked || siblings[i].indeterminate) checkedLen++;
+							}
+							$parent.checked = (checkedLen==siblings.length);
+							$parent.indeterminate  = (checkedLen!=0 && checkedLen!=siblings.length);
+							parentNode.checked = $parent.checked;
+							parentNode.indeterminate = $parent.indeterminate;
+							curNode= curNode.parentNode;
+						}
+						//->children
+						var childrencbs = baidu.dom.query(">dd :checkbox",baidu.dom.g(nodeid+"-node").parentNode);
+						for(var i=0,l=childrencbs.length;i<l;i++){
+							var c = childrencbs[i],cnode = me.getTreeNodeById(c.id.replace(/-checkbox/i,""));
+							cnode.indeterminate = false;
+							cnode.checked = node.checked;
+							childrencbs[i].checked = node.checked;
+						}
+					}
 				}
 				treeInstance.addEventListener("onload",function(){
 					var me=this,$tree= me.getMain();
@@ -40,11 +92,41 @@
 							me.applyCheckBox(baidu.dom.g(target.getAttribute("for")||target.id));
 						}
 					});
+					if(me.checkMode==3){
+						var leafChecked=baidu.dom.query("dl:has(dt:has(:checked)):has(>dd:empty)",me.getMain());
+						for(var i=0,l=leafChecked.length;i<l;i++){
+							me.applyCheckBox(baidu.dom.query(">dt :checked",leafChecked[i])[0]);
+						}
+					}
 				});
 				treeInstance.addEventListener("dispose",function(){
 					var me=this,$tree= me.getMain();
 					baidu.event.un($tree,"click");
-				})
+				});
+				
+				//checkbox有关的方法
+				treeInstance.getCheckedNodes= function(withIndeterminate){
+					var me=this,checkedNodes=[];
+					if(me.checkMode==1){
+						if(me._singlechecked){
+							checkedNodes.push(me.getTreeNodeById(me._singlechecked));
+						}
+						return checkedNodes;
+					}
+					//遍历树节点
+					var root= me.getRootNode(),arr=[root],currentIndex=0;
+					if(root.checked || (withIndeterminate && root.indeterminate)) checkedNodes.push(root);
+					while(currentIndex<arr.length){
+						var cnode = arr[currentIndex],children= cnode.getChildNodes()||[];
+						for(var i=0,l=children.length;i<l;i++){
+							var c= children[i];
+							if(c.checked || (withIndeterminate && c.indeterminate)) checkedNodes.push(c);
+							arr.push(c);
+						}
+						currentIndex++;
+					}
+					return checkedNodes;
+				}
 			});
 			
 		})();
@@ -61,8 +143,9 @@
 	<input type="checkbox" id="cb1" name="" />
 </div>
 <script type="text/javascript">
-		var c = new baidu.ui.Tree({data: {id: "root", type:"", text: "根节点",icon:"image/group.png", children: [{id: "rsid0", type:"trunk", text: "节点-0(节点id：rsid0)",icon:"image/service.gif", children: [{id: "rsid00", type:"leaf", text: "子节点-0-0(节点id: rsid00)", children: [] },{id: "rsid01", type:"leaf", text: "子节点-0-1(节点id: rsid01)", children: [] },{id: "rsid02", type:"leaf", text: "子节点-0-2(节点id: rsid02)", children: [] }] },{id: "rsid1", type:"trunk", text: "节点-1(节点id：rsid1)", children: [{id: "rsid10", type:"leaf", text: "子节点-1-0(节点id: rsid10)", children: [] },{id: "rsid11", type:"leaf", text: "子节点-1-1(节点id: rsid11)",icon:"image/su.gif", children: [] },{id: "rsid12", type:"leaf",icon:"image/machine.gif", text: "子节点-1-2(节点id: rsid12)", checked:true,/*节点数据新增属性checked是否选中*/ children: [] }] },{id: "rsid2", type:"leaf", text: "节点-2(节点id：rsid2)", icon:"image/machine.png",children: [] },{id: "rsid3", type:"leaf", text: "节点-3(节点id：rsid3)", children: [] },{id: "rsid4", type:"leaf", text: "节点-4(节点id：rsid4)", children: [] }] },
+		var c = new baidu.ui.Tree({data: {id: "root", type:"", text: "根节点",icon:"image/group.png", children: [{id: "rsid0", type:"trunk", text: "节点-0(节点id：rsid0)", checked:true,icon:"image/service.gif", children: [{id: "rsid00", type:"leaf", text: "子节点-0-0(节点id: rsid00)", children: [] },{id: "rsid01", type:"leaf", text: "子节点-0-1(节点id: rsid01)", children: [] },{id: "rsid02", type:"leaf", text: "子节点-0-2(节点id: rsid02)", children: [] }] },{id: "rsid1", type:"trunk", text: "节点-1(节点id：rsid1)", children: [{id: "rsid10", type:"leaf", text: "子节点-1-0(节点id: rsid10)", children: [] },{id: "rsid11", type:"leaf", text: "子节点-1-1(节点id: rsid11)",icon:"image/su.gif", children: [] },{id: "rsid12", type:"leaf",icon:"image/machine.gif", text: "子节点-1-2(节点id: rsid12)", checked:true,/*节点数据新增属性checked是否选中*/ children: [] }] },{id: "rsid2", type:"leaf", text: "节点-2(节点id：rsid2)", icon:"image/machine.png",children: [] },{id: "rsid3", type:"leaf", text: "节点-3(节点id：rsid3)", children: [] },{id: "rsid4", type:"leaf", text: "节点-4(节点id：rsid4)", children: [] }] },
 		checkbox:true,//新增属性是否有checkbox
+		checkMode:3,//1-单选,2-多选,3-级联选择,默认多选
 		onload: function(evt){evt.target.getRootNode().expandAll();}});
 		c.render("treeId");	
 	</script>
