@@ -35,9 +35,19 @@
 		}
 	}
 	
+	//使用钩子更新级联选择&&树节点发生变化(方法->对应钩子方法/事件)
+	// appendData		->appendData
+	// appendTo			->_updateAll
+	// moveTo			->_updateAll
+	// appendChild		->_updateAll
+	// removeAllChildren->_updateAll
+	// removeChild		->_updateAll
+	// update			->update
+
+
 	//checkbox addon
 	baidu.ui.Tree.register(function(treeInstance){
-		treeInstance.applyCheckBox = function(sourcecb){
+		treeInstance.updateCheckBox = function(sourcecb){
 			var me =this,nodeid=sourcecb.id.replace(/-checkbox$/i,""),node= me.getTreeNodeById(nodeid);
 			//单选去除现有选项
 			if(me.checkMode==1){
@@ -57,7 +67,6 @@
 			//保存状态
 			node.indeterminate = sourcecb.indeterminate;
 			node.checked = sourcecb.checked;
-		
 			//级联选择
 			if(me.checkMode==3){
 				var curNode = node ;
@@ -89,13 +98,13 @@
 				//获取触发事件的原始DOM节点
 				var target = evt.target||evt.srcElement,targetClassName= target.className||"";
 				if(targetClassName.indexOf("tangram-tree-checkbox")!=-1 && (target.type||"").toLowerCase()=="checkbox"){
-					me.applyCheckBox(baidu.dom.g(target.getAttribute("for")||target.id));
+					me.updateCheckBox(baidu.dom.g(target.getAttribute("for")||target.id));
 				}
 			});
 			if(me.checkMode==3){
 				var leafChecked=baidu.dom.query("dl:has(dt:has(:checked)):has(>dd:empty)",me.getMain());
 				for(var i=0,l=leafChecked.length;i<l;i++){
-					me.applyCheckBox(baidu.dom.query(">dt :checked",leafChecked[i])[0]);
+					me.updateCheckBox(baidu.dom.query(">dt :checked",leafChecked[i])[0]);
 				}
 			}
 		});
