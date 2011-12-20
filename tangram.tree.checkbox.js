@@ -120,7 +120,8 @@
 					var c = childrencbs[i],cnode = me.getTreeNodeById(c.id.replace(/-checkbox/i,""));
 					cnode.indeterminate = false;
 					cnode.checked = node.checked;
-					childrencbs[i].checked = node.checked;
+					c.indeterminate = false;
+					c.checked = node.checked;
 				}
 			}
 		}
