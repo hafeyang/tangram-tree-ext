@@ -8,6 +8,10 @@
 	<script type="text/javascript" src="tangram.tree.js"></script>
 	<script type="text/javascript" src="tangram.tree.checkbox.js"></script>
 	<link rel="stylesheet" href="tree.css" type="text/css" />
+	<style type="text/css">
+	/* for tangram tree checkbox*/
+	.tangram-tree-checkbox{margin:0px 2px;vertical-align:middle;padding:0px;width:12px;height:12px;}
+	</style>
 </head>
 <body>
 <h2>checkbox support for tangram tree</h2>
@@ -21,6 +25,11 @@
 	<input type="button" id="" name="" value="length of nodes with indeterminate" onclick="alert(c.getCheckedNodes(true).length);" />
 	<br />
 	<input type="button" id="" name="" value="appendData" onclick="c.getTreeNodeById('rsid1').appendData([{id:'rsid1--11',text:'rsid1--11',checked:true},{id:'rsid1--12',text:'rsid1--12',type:'leaf'}]);"; />
+	<input type="button" id="" name="" value="appendTo" onclick="c.getTreeNodeById('rsid11').appendTo(c.getRootNode());" />
+	<input type="button" id="" name="" value="moveTo" onclick="c.getTreeNodeById('rsid11').moveTo(c.getTreeNodeById('rsid4'));" />
+
+	<input type="button" id="" name="" value="appendChild" onclick="c.getTreeNodeById('rsid0').appendChild(new baidu.ui.Tree.TreeNode({id:'x-'+(new Date()).getTime(),text:'new node',checked:true}));" />
+	<input type="button" id="" name="" value="update" onclick="var node = c.getTreeNodeById('rsid3');node.checked=!node.checked; node.text+='_u'; node.update();" />
 </div>
 <script type="text/javascript">
 		var c = new baidu.ui.Tree({data: {id: "root", type:"", text: "根节点",icon:"image/group.png", children: [{id: "rsid0", type:"trunk", text: "节点-0(节点id：rsid0)", checked:true,icon:"image/service.gif", children: [{id: "rsid00", type:"leaf", text: "子节点-0-0(节点id: rsid00)", children: [] },{id: "rsid01", type:"leaf", text: "子节点-0-1(节点id: rsid01)", children: [] },{id: "rsid02", type:"leaf", text: "子节点-0-2(节点id: rsid02)", children: [] }] },{id: "rsid1", type:"trunk", text: "节点-1(节点id：rsid1)", children: [{id: "rsid10", type:"leaf", text: "子节点-1-0(节点id: rsid10)", children: [] },{id: "rsid11", type:"leaf", text: "子节点-1-1(节点id: rsid11)",icon:"image/su.gif", children: [] },{id: "rsid12", type:"leaf",icon:"image/machine.gif", text: "子节点-1-2(节点id: rsid12)", checked:true,/*节点数据新增属性checked是否选中*/ children: [] }] },{id: "rsid2", type:"leaf", text: "节点-2(节点id：rsid2)", icon:"image/machine.png",children: [] },{id: "rsid3", type:"leaf", text: "节点-3(节点id：rsid3)", children: [] },{id: "rsid4", type:"leaf", text: "节点-4(节点id：rsid4)", children: [] }] },

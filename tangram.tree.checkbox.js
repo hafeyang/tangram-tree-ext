@@ -7,6 +7,17 @@
 *	@author yanghengfeng@baidu.com
 */
 (function(){
+	
+	//为方法添加一个切面(重写)
+	function inheritFunction(Clazz,fnName,ext){
+		var oldFn= Clazz.prototype[fnName] ;
+		Clazz.prototype[fnName] = function(){
+			var args = Array.prototype.slice.apply(arguments);
+			args.push(oldFn.apply(this,args));
+			ext.apply(this,args);//扩展方法的最后一个参数是原方法的调用结果
+		};
+	}	
+
 	//重写_createTextStringArray实现checkbox显示
 	//_createTextStringArray的源码
 	/*_createTextStringArray: function() {
@@ -16,9 +27,7 @@
 		stringArray.push('<span title="',me.title || me.text,'" id="',
 			me.id,'-text" >',text,'</span></span>');
 	},*/
-	var oldFn = baidu.ui.Tree.TreeNode.prototype._createTextStringArray;
-	baidu.ui.Tree.TreeNode.prototype._createTextStringArray= function(){
-		oldFn.apply(this);
+	inheritFunction(baidu.ui.Tree.TreeNode,"_createTextStringArray",function(){
 		var me=this,treeInstance=me.getTree(),stringArray=me._stringArray;nodetext = stringArray[stringArray.length-2];
 		if(treeInstance.checkMode==3 && me.type=="trunk" && me.checked ){
 			me.checked=false;
@@ -31,9 +40,9 @@
 			}
 		}
 		if(treeInstance.checkbox===true){
-			stringArray[stringArray.length-2]=("<input class='tangram-tree-checkbox' autocomplete='off' type='checkbox' "+(me.checked?" checked='checked' ":"")+" id='"+me.id+"-checkbox' style='margin:0px 2px;vertical-align:middle;padding:0px;width:12px;height:12px;' /><label class='tangram-tree-checkbox-label'  for='"+me.id+"-checkbox'>"+nodetext+"</label>");
+			stringArray[stringArray.length-2]=("<input class='tangram-tree-checkbox' autocomplete='off' type='checkbox' "+(me.checked?" checked='checked' ":"")+" id='"+me.id+"-checkbox'/><label class='tangram-tree-checkbox-label'  for='"+me.id+"-checkbox'>"+nodetext+"</label>");
 		}
-	}
+	});
 	
 	//使用钩子更新级联选择&&树节点发生变化(方法->对应钩子方法/事件)
 	// appendData		->appendData
@@ -44,6 +53,29 @@
 	// removeChild		->_updateAll
 	// update			->update
 
+	//树初始加载数据也调用了appendData方法
+	inheritFunction(baidu.ui.Tree.TreeNode,"appendData",function(data){
+		var me =this,treeInstance=me.getTree(),nodeid= me.id;
+		if(data.length && treeInstance.checkMode==3){
+			treeInstance.updateAllCheckBox(baidu.dom.g(nodeid+"-subNodeId"))
+		}
+	});	
+
+	inheritFunction(baidu.ui.Tree.TreeNode,"_updateAll",function(){
+		var me=this,treeInstance=me.getTree();
+		console.log("_updateAll");
+		if(treeInstance.checkMode==3){
+			treeInstance.updateAllCheckBox()
+		}
+	});
+	
+	inheritFunction(baidu.ui.Tree.TreeNode,"update",function(nodedata){
+		var me=this,treeInstance=me.getTree(),nodeid=me.id,nodetext = me.text;
+		baidu.g(nodeid+"-text").innerHTML=("<input class='tangram-tree-checkbox' autocomplete='off' type='checkbox' "+(me.checked?" checked='checked' ":"")+" id='"+me.id+"-checkbox' /><label class='tangram-tree-checkbox-label'  for='"+me.id+"-checkbox'>"+nodetext+"</label>");
+		if(treeInstance.checkMode==3){
+			treeInstance.updateAllCheckBox(baidu.dom.g(me.getParentNode().id+"-subNodeId"))
+		}
+	});
 
 	//checkbox addon
 	baidu.ui.Tree.register(function(treeInstance){
@@ -92,6 +124,13 @@
 				}
 			}
 		}
+		treeInstance.updateAllCheckBox= function(context){
+			var me=this;
+			var leafCheckBox=baidu.dom.query("dl:has(dt:has(:checkbox)):has(>dd:empty)",context||me.getMain());
+			for(var i=0,l=leafCheckBox.length;i<l;i++){
+				me.updateCheckBox(baidu.dom.query(">dt :checkbox",leafCheckBox[i])[0]);
+			}
+		}
 		treeInstance.addEventListener("onload",function(){
 			var me=this,$tree= me.getMain();
 			baidu.event.on($tree,"click",function(evt){
@@ -101,12 +140,6 @@
 					me.updateCheckBox(baidu.dom.g(target.getAttribute("for")||target.id));
 				}
 			});
-			if(me.checkMode==3){
-				var leafChecked=baidu.dom.query("dl:has(dt:has(:checked)):has(>dd:empty)",me.getMain());
-				for(var i=0,l=leafChecked.length;i<l;i++){
-					me.updateCheckBox(baidu.dom.query(">dt :checked",leafChecked[i])[0]);
-				}
-			}
 		});
 		treeInstance.addEventListener("dispose",function(){
 			var me=this,$tree= me.getMain();
