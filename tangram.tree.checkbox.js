@@ -1,6 +1,6 @@
 /*
 *	tangram.tree.checkbox.js
-*	add support for tangram tree
+*	add checkbox support for tangram tree
 *	@option.checkbox :true/false 
 *	@option.checkMode :1-single check,2-multiple check(default),3-casacade check 
 *	@function getCheckNodes(withIndeterminate) : get checked  nodes  ,withIndeterminate : true/false ,with Indeterminate?
@@ -63,7 +63,6 @@
 
 	inheritFunction(baidu.ui.Tree.TreeNode,"_updateAll",function(){
 		var me=this,treeInstance=me.getTree();
-		console.log("_updateAll");
 		if(treeInstance.checkMode==3){
 			treeInstance.updateAllCheckBox()
 		}
@@ -115,7 +114,7 @@
 					curNode= curNode.parentNode;
 				}
 				//->children
-				var childrencbs = baidu.dom.query(">dd :checkbox",baidu.dom.g(nodeid+"-node").parentNode);
+				var childrencbs =baidu.dom.query(":checkbox",baidu.dom.g(nodeid+"-node").parentNode.getElementsByTagName("dd")[0]);
 				for(var i=0,l=childrencbs.length;i<l;i++){
 					var c = childrencbs[i],cnode = me.getTreeNodeById(c.id.replace(/-checkbox/i,""));
 					cnode.indeterminate = false;
